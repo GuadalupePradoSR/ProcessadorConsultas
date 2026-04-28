@@ -8,4 +8,11 @@ import lombok.Data;
 public class QueryResponse {
     private boolean valid;
     private String message;
+    private String algebra;
+
+    public QueryResponse(boolean valid, String message) {
+        this.valid = valid;
+        this.message = message;
+        this.algebra = null;
+    }
 }
