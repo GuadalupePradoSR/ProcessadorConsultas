@@ -44,7 +44,8 @@ public class ConversionAlgebra {
                     if (join.getOnExpressions() != null && !join.getOnExpressions().isEmpty()) {
                         String condicaoJoin = join.getOnExpressions().stream()
                                 .map(Object::toString)
-                                .collect(Collectors.joining(" AND "));
+                                .collect(Collectors.joining(" ^ "))
+                                .replaceAll("(?i)\\bAND\\b", "^");
                         // Aplica o símbolo de Join com a condição
                         expressaoAtual = "(" + expressaoAtual + " ⋈_{" + condicaoJoin + "} " + tabelaJoin + ")";
                     } else {
@@ -56,7 +57,7 @@ public class ConversionAlgebra {
 
             // 3. WHERE (Seleção - σ)
             if (plainSelect.getWhere() != null) {
-                String condicaoWhere = plainSelect.getWhere().toString();
+                String condicaoWhere = plainSelect.getWhere().toString().replaceAll("(?i)\\bAND\\b", "^");
                 // Envolve a expressão atual com a operação de Seleção
                 expressaoAtual = "σ_(" + condicaoWhere + ")(" + expressaoAtual + ")";
             }
