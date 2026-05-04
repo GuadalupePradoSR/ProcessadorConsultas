@@ -9,7 +9,7 @@ version = '0.0.1-SNAPSHOT'
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(25)
+		languageVersion = JavaLanguageVersion.of(21)
 	}
 }
 
@@ -32,4 +32,6 @@ tasks.named('test') {
 }
 dependencies {
 	implementation 'com.github.jsqlparser:jsqlparser:4.6'
+	implementation 'org.graphstream:gs-core:2.0'
+	implementation 'org.graphstream:gs-ui-swing:2.0'
 }
