@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Otimizador de Álgebra Relacional</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 30px;
+        }
+
+        .section {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        textarea {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 100px;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .button-group button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-validate {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-validate:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .btn-optimize {
+            background: #2196F3;
+            color: white;
+            grid-column: 1;
+        }
+
+        .btn-optimize:hover {
+            background: #0b7dda;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(33, 150, 243, 0.3);
+        }
+
+        .btn-tree {
+            background: #FF9800;
+            color: white;
+            grid-column: 2;
+        }
+
+        .btn-tree:hover {
+            background: #e68900;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 152, 0, 0.3);
+        }
+
+        .btn-compare {
+            background: #9C27B0;
+            color: white;
+        }
+
+        .btn-compare:hover {
+            background: #7b1fa2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(156, 39, 176, 0.3);
+        }
+
+        .output {
+            background: #f5f5f5;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            min-height: 200px;
+            max-height: 500px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .output.error {
+            background: #ffebee;
+            border-color: #ef5350;
+            color: #c62828;
+        }
+
+        .output.success {
+            background: #f1f8e9;
+            border-color: #558b2f;
+            color: #33691e;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab-button {
+            padding: 10px 15px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-weight: 600;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab-button.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-button:hover {
+            color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .tree-visualization {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .tree-node {
+            margin-left: 20px;
+            margin-top: 8px;
+            padding: 8px;
+            background: white;
+            border-left: 3px solid #667eea;
+            border-radius: 4px;
+        }
+
+        .tree-node.table {
+            border-left-color: #4CAF50;
+        }
+
+        .tree-node.projection {
+            border-left-color: #2196F3;
+        }
+
+        .tree-node.selection {
+            border-left-color: #FF9800;
+        }
+
+        .tree-node.join {
+            border-left-color: #9C27B0;
+        }
+
+        .status {
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .status.show {
+            display: block;
+        }
+
+        .status.loading {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .status.success {
+            background: #e8f5e9;
+            color: #388e3c;
+        }
+
+        .status.error {
+            background: #ffebee;
+            color: #d32f2f;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        @media (max-width: 1024px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+
+            .stats {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .comparison-section {
+            display: none;
+        }
+
+        .comparison-section.show {
+            display: block;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .comparison-item h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top-color: #667eea;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 Otimizador de Álgebra Relacional</h1>
+            <p>Optimize suas consultas SQL com heurísticas inteligentes</p>
+        </header>
+
+        <div class="content">
+            <!-- Seção de Entrada -->
+            <div class="section">
+                <h2>📝 SQL de Entrada</h2>
+                <textarea id="sqlInput" placeholder="Digite sua consulta SQL aqui...&#10;&#10;Exemplo:&#10;SELECT C.nome, P.valor FROM Cliente C JOIN Pedido P ON C.id = P.cliente_id WHERE P.valor > 100"></textarea>
+                
+                <div style="margin-top: 15px;">
+                    <h3 style="color: #333; margin-bottom: 10px; font-size: 0.95em;">Escolha a Ação:</h3>
+                    <div class="button-group">
+                        <button class="btn-validate" onclick="testValidate()">✓ Validar</button>
+                        <button class="btn-optimize" onclick="testOptimize()">⚡ Otimizar</button>
+                        <button class="btn-tree" onclick="testTree()">🌳 Apenas Grafo</button>
+                        <button class="btn-compare" onclick="testCompare()">📊 Comparar</button>
+                    </div>
+                </div>
+
+                <div class="status" id="status">
+                    <span class="loading-spinner"></span> Processando...
+                </div>
+
+                <!-- Exemplos -->
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #e0e0e0;">
+                    <h3 style="color: #333; margin-bottom: 10px; font-size: 0.95em;">📚 Exemplos Rápidos:</h3>
+                    <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                        <button onclick="setExample('SELECT * FROM Cliente')" style="padding: 8px 12px; border: 1px solid #667eea; background: white; color: #667eea; border-radius: 5px; cursor: pointer; font-size: 12px;">Simples</button>
+                        <button onclick="setExample('SELECT C.nome FROM Cliente C WHERE C.id > 10')" style="padding: 8px 12px; border: 1px solid #667eea; background: white; color: #667eea; border-radius: 5px; cursor: pointer; font-size: 12px;">Com WHERE</button>
+                        <button onclick="setExample('SELECT C.nome, P.valor FROM Cliente C JOIN Pedido P ON C.id = P.cliente_id')" style="padding: 8px 12px; border: 1px solid #667eea; background: white; color: #667eea; border-radius: 5px; cursor: pointer; font-size: 12px;">Com JOIN</button>
+                        <button onclick="setExample('SELECT C.nome, P.valor FROM Cliente C JOIN Pedido P ON C.id = P.cliente_id WHERE P.valor > 100')" style="padding: 8px 12px; border: 1px solid #667eea; background: white; color: #667eea; border-radius: 5px; cursor: pointer; font-size: 12px;">Completo</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção de Saída -->
+            <div class="section">
+                <h2>📊 Resultado</h2>
+
+                <div class="tabs">
+                    <button class="tab-button active" onclick="switchTab('json')">JSON</button>
+                    <button class="tab-button" onclick="switchTab('tree')">Árvore</button>
+                    <button class="tab-button" onclick="switchTab('comparison')">Comparação</button>
+                </div>
+
+                <!-- Tab JSON -->
+                <div id="json-tab" class="tab-content active">
+                    <div class="output" id="output">
+                        { "mensagem": "Execute uma ação para ver o resultado aqui..." }
+                    </div>
+                </div>
+
+                <!-- Tab Árvore -->
+                <div id="tree-tab" class="tab-content">
+                    <div class="tree-visualization" id="treeOutput">
+                        <p style="color: #999;">Execute "Apenas Grafo" para visualizar a árvore...</p>
+                    </div>
+                </div>
+
+                <!-- Tab Comparação -->
+                <div id="comparison-tab" class="tab-content comparison-section" id="comparisonSection">
+                    <div class="comparison-grid">
+                        <div>
+                            <h3>Árvore Original</h3>
+                            <div class="tree-visualization" id="originalTreeOutput" style="max-height: 200px;">
+                                <p style="color: #999;">Aguardando...</p>
+                            </div>
+                        </div>
+                        <div>
+                            <h3>Árvore Otimizada</h3>
+                            <div class="tree-visualization" id="optimizedTreeOutput" style="max-height: 200px;">
+                                <p style="color: #999;">Aguardando...</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <h3 style="color: #667eea;">Resumo de Otimizações</h3>
+                        <div class="output" id="summaryOutput" style="min-height: 100px;">
+                            <p style="color: #999;">Aguardando...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Estatísticas -->
+                <div class="stats" id="stats" style="display: none;">
+                    <div class="stat-box">
+                        <div class="stat-label">Válido</div>
+                        <div class="stat-value" id="statValid">✓</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Profundidade</div>
+                        <div class="stat-value" id="statDepth">-</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Tipo Raiz</div>
+                        <div class="stat-value" id="statType">-</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Nós</div>
+                        <div class="stat-value" id="statNodes">-</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api/sql';
+
+        // Funções de Exemplo
+        function setExample(sql) {
+            document.getElementById('sqlInput').value = sql;
+        }
+
+        // Função de Status
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status show ${type}`;
+            if (type !== 'loading') {
+                setTimeout(() => {
+                    status.classList.remove('show');
+                }, 4000);
+            }
+        }
+
+        // Switch de Tabs
+        function switchTab(tabName) {
+            // Remover active de todos
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+
+            // Ativar tab selecionada
+            const tabElement = document.getElementById(`${tabName}-tab`);
+            if (tabElement) {
+                tabElement.classList.add('active');
+            }
+            
+            // Ativar botão da tab
+            const buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(btn => {
+                if (btn.textContent.includes(tabName === 'json' ? 'JSON' : tabName === 'tree' ? 'Árvore' : 'Comparação')) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        // Renderizar Árvore
+        function renderTree(node, depth = 0) {
+            if (!node) return '';
+
+            const indent = '  '.repeat(depth);
+            const typeClass = (node.type || 'unknown').toLowerCase();
+            
+            let html = `<div class="tree-node ${typeClass}" style="margin-left: ${depth * 20}px">`;
+            html += `<strong>[${node.type || 'UNKNOWN'}]</strong> ${node.label || 'N/A'}`;
+            
+            if (node.details) {
+                html += `<br><span style="opacity: 0.7; font-size: 0.9em;">${node.details}</span>`;
+            }
+            
+            if (node.children && node.children.length > 0) {
+                for (let child of node.children) {
+                    html += renderTree(child, depth + 1);
+                }
+            }
+            
+            html += '</div>';
+            return html;
+        }
+
+        // Contar Nós
+        function countNodes(node) {
+            if (!node) return 0;
+            let count = 1;
+            if (node.children && node.children.length > 0) {
+                for (let child of node.children) {
+                    count += countNodes(child);
+                }
+            }
+            return count;
+        }
+
+        // Calcular Profundidade
+        function calculateDepth(node) {
+            if (!node) return 0;
+            let maxDepth = 0;
+            if (node.children && node.children.length > 0) {
+                for (let child of node.children) {
+                    maxDepth = Math.max(maxDepth, calculateDepth(child));
+                }
+            }
+            return maxDepth + 1;
+        }
+
+        // Testar Validação
+        async function testValidate() {
+            const sql = document.getElementById('sqlInput').value;
+            if (!sql.trim()) {
+                showStatus('⚠️ Digite uma SQL primeiro!', 'error');
+                return;
+            }
+
+            showStatus('⏳ Validando SQL...', 'loading');
+
+            try {
+                const response = await fetch(`${API_BASE}/validate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: sql })
+                });
+
+                const data = await response.json();
+                
+                document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+                document.getElementById('output').className = data.valid ? 'output success' : 'output error';
+
+                showStatus(`✓ ${data.message}`, data.valid ? 'success' : 'error');
+                
+                // Mostrar stats
+                document.getElementById('stats').style.display = 'grid';
+                document.getElementById('statValid').textContent = data.valid ? '✓' : '✗';
+                document.getElementById('statDepth').textContent = '-';
+                document.getElementById('statType').textContent = '-';
+                document.getElementById('statNodes').textContent = '-';
+            } catch (error) {
+                showStatus(`❌ Erro: ${error.message}`, 'error');
+                document.getElementById('output').className = 'output error';
+                document.getElementById('output').textContent = `Erro ao conectar: ${error.message}`;
+            }
+        }
+
+        // Testar Otimização Completa
+        async function testOptimize() {
+            const sql = document.getElementById('sqlInput').value;
+            if (!sql.trim()) {
+                showStatus('⚠️ Digite uma SQL primeiro!', 'error');
+                return;
+            }
+
+            showStatus('⏳ Otimizando consulta...', 'loading');
+
+            try {
+                const response = await fetch(`${API_BASE}/optimize`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: sql })
+                });
+
+                const data = await response.json();
+                
+                document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+                document.getElementById('output').className = data.valid ? 'output success' : 'output error';
+
+                showStatus(`✓ Otimização realizada!`, 'success');
+
+                // Renderizar árvore
+                if (data.optimizedTree) {
+                    document.getElementById('treeOutput').innerHTML = renderTree(data.optimizedTree);
+                    
+                    // Mostrar stats
+                    document.getElementById('stats').style.display = 'grid';
+                    document.getElementById('statValid').textContent = data.valid ? '✓' : '✗';
+                    document.getElementById('statDepth').textContent = calculateDepth(data.optimizedTree);
+                    document.getElementById('statType').textContent = data.optimizedTree.type || '-';
+                    document.getElementById('statNodes').textContent = countNodes(data.optimizedTree);
+                }
+            } catch (error) {
+                showStatus(`❌ Erro: ${error.message}`, 'error');
+                document.getElementById('output').className = 'output error';
+                document.getElementById('output').textContent = `Erro ao conectar: ${error.message}`;
+            }
+        }
+
+        // Testar Apenas Árvore
+        async function testTree() {
+            const sql = document.getElementById('sqlInput').value;
+            if (!sql.trim()) {
+                showStatus('⚠️ Digite uma SQL primeiro!', 'error');
+                return;
+            }
+
+            showStatus('⏳ Gerando grafo...', 'loading');
+
+            try {
+                const response = await fetch(`${API_BASE}/optimize/tree`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: sql })
+                });
+
+                const data = await response.json();
+                
+                document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+                document.getElementById('output').className = 'output success';
+
+                // Renderizar árvore
+                if (data.type !== 'ERROR') {
+                    document.getElementById('treeOutput').innerHTML = renderTree(data);
+                    switchTab('tree');
+
+                    // Mostrar stats
+                    document.getElementById('stats').style.display = 'grid';
+                    document.getElementById('statValid').textContent = '✓';
+                    document.getElementById('statDepth').textContent = calculateDepth(data);
+                    document.getElementById('statType').textContent = data.type || '-';
+                    document.getElementById('statNodes').textContent = countNodes(data);
+                }
+
+                showStatus('✓ Grafo gerado com sucesso!', 'success');
+            } catch (error) {
+                showStatus(`❌ Erro: ${error.message}`, 'error');
+                document.getElementById('output').className = 'output error';
+                document.getElementById('output').textContent = `Erro ao conectar: ${error.message}`;
+            }
+        }
+
+        // Testar Comparação
+        async function testCompare() {
+            const sql = document.getElementById('sqlInput').value;
+            if (!sql.trim()) {
+                showStatus('⚠️ Digite uma SQL primeiro!', 'error');
+                return;
+            }
+
+            showStatus('⏳ Comparando árvores...', 'loading');
+
+            try {
+                const response = await fetch(`${API_BASE}/optimize/compare`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: sql })
+                });
+
+                const data = await response.json();
+                
+                document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+                document.getElementById('output').className = 'output success';
+
+                // Renderizar árvores
+                if (data.originalTree) {
+                    document.getElementById('originalTreeOutput').innerHTML = renderTree(data.originalTree);
+                }
+                if (data.optimizedTree) {
+                    document.getElementById('optimizedTreeOutput').innerHTML = renderTree(data.optimizedTree);
+                }
+                if (data.optimizationSummary) {
+                    document.getElementById('summaryOutput').textContent = data.optimizationSummary;
+                    document.getElementById('summaryOutput').className = 'output';
+                }
+
+                switchTab('comparison');
+                document.getElementById('comparisonSection').classList.add('show');
+
+                showStatus('✓ Comparação realizada!', 'success');
+            } catch (error) {
+                showStatus(`❌ Erro: ${error.message}`, 'error');
+                document.getElementById('output').className = 'output error';
+                document.getElementById('output').textContent = `Erro ao conectar: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>
