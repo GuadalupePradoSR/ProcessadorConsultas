@@ -21,7 +21,7 @@ public class SqlValidatorService {
         METADATA.put("categoria", Arrays.asList("idcategoria", "descricao"));
         METADATA.put("produto", Arrays.asList("idproduto", "nome", "descricao", "preco", "quantestoque", "categoria_idcategoria"));
         METADATA.put("tipocliente", Arrays.asList("idtipocliente", "descricao"));
-        METADATA.put("cliente", Arrays.asList("idcliente", "nome", "email", "nascimento", "senha", "tipocliente_idtipocliente", "dataregistro"));
+        METADATA.put("cliente", Arrays.asList("id", "idcliente", "nome", "email", "nascimento", "senha", "tipocliente_idtipocliente", "dataregistro"));
         METADATA.put("tipoendereco", Arrays.asList("idtipoendereco", "descricao"));
         METADATA.put("endereco", Arrays.asList("idendereco", "enderecopadrao", "logradouro", "numero", "complemento", "bairro", "cidade", "uf", "cep", "tipoendereco_idtipoendereco", "cliente_idcliente"));
         METADATA.put("telefone", Arrays.asList("numero", "cliente_idcliente"));
