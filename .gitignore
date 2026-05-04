@@ -1,0 +1,44 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDE - VS Code / IntelliJ / Eclipse
+.vscode/
+.idea/
+*.iml
+*.ipr
+*.iws
+*.classpath
+*.project
+*.settings/
+
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# Java / Spring Boot
+*.class
+*.log
+*.jar
+*.war
+*.ear
+target/
+HELP.md
+
+# Frontend / Node.js
+frontend/node_modules/
+node_modules/
+npm-debug.log
+dist/
+dist-ssr/
+*.local
+
+# Variáveis de ambiente
+.env
+.env.test
+.env.production
+.env.local
