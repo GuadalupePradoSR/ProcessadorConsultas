@@ -14,6 +14,14 @@ import java.util.*;
 @Service
 public class SqlValidatorService {
 
+    private final ConversionAlgebra conversionAlgebra;
+    private final GraphBuilderService graphBuilderService;
+
+    public SqlValidatorService(ConversionAlgebra conversionAlgebra, GraphBuilderService graphBuilderService) {
+        this.conversionAlgebra = conversionAlgebra;
+        this.graphBuilderService = graphBuilderService;
+    }
+
     // Dicionário de Dados Baseado no PDF
     private static final Map<String, List<String>> METADATA = new HashMap<>();
 
@@ -79,14 +87,18 @@ public class SqlValidatorService {
                 }
 
                 if (!validColumns.contains(cleanCol)) {
-                    return new QueryResponse(false, "Erro: O atributo '" + col + "' não existe nas tabelas informadas.");
+                    return new QueryResponse(false, "Erro: O atributo '" + col + "' não existe nas tabelas informadas.", null, null, null);
                 }
             }
 
-            return new QueryResponse(true, "Consulta válida sintaticamente e atributos confirmados!");
+            String algebra = conversionAlgebra.convertToAlgebra(cleanSql);
+            String unoptimizedGraph = graphBuilderService.buildUnoptimizedGraph(cleanSql);
+            String optimizedGraph = graphBuilderService.buildOptimizedGraph(cleanSql);
+            
+            return new QueryResponse(true, "Consulta válida sintaticamente e atributos confirmados!", algebra, unoptimizedGraph, optimizedGraph);
             
         } catch (Exception e) {
-            return new QueryResponse(false, "Erro de Sintaxe SQL: " + e.getMessage());
+            return new QueryResponse(false, "Erro de Sintaxe SQL: " + e.getMessage(), null, null, null);
         }
     }
 }
