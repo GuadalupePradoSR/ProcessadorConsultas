@@ -87,18 +87,19 @@ public class SqlValidatorService {
                 }
 
                 if (!validColumns.contains(cleanCol)) {
-                    return new QueryResponse(false, "Erro: O atributo '" + col + "' não existe nas tabelas informadas.", null, null, null);
+                    return new QueryResponse(false, "Erro: O atributo '" + col + "' não existe nas tabelas informadas.");
                 }
             }
 
             String algebra = conversionAlgebra.convertToAlgebra(cleanSql);
             String unoptimizedGraph = graphBuilderService.buildUnoptimizedGraph(cleanSql);
             String optimizedGraph = graphBuilderService.buildOptimizedGraph(cleanSql);
+            String executionPlan = graphBuilderService.buildExecutionPlanGraph(cleanSql);
             
-            return new QueryResponse(true, "Consulta válida sintaticamente e atributos confirmados!", algebra, unoptimizedGraph, optimizedGraph);
+            return new QueryResponse(true, "Consulta válida sintaticamente e atributos confirmados!", algebra, unoptimizedGraph, optimizedGraph, executionPlan);
             
         } catch (Exception e) {
-            return new QueryResponse(false, "Erro de Sintaxe SQL: " + e.getMessage(), null, null, null);
+            return new QueryResponse(false, "Erro de Sintaxe SQL: " + e.getMessage());
         }
     }
 }

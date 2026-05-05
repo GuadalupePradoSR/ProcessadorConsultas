@@ -54,16 +54,27 @@ function App() {
           )}
 
           {result.unoptimizedGraph && (
-            <div style={{ display: 'flex', flexDirection: 'row', gap: '20px', marginTop: '20px' }}>
-                <div style={{ flex: 1, backgroundColor: 'white', padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }}>
-                    <h3 style={{color: 'black'}}>Grafo de Operadores (HU3)</h3>
-                    <Mermaid id="graph-hu3" chart={result.unoptimizedGraph} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '20px' }}>
+                <div style={{ display: 'flex', flexDirection: 'row', gap: '20px' }}>
+                    <div style={{ flex: 1, backgroundColor: 'white', padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }}>
+                        <h3 style={{color: 'black'}}>Grafo de Operadores (HU3)</h3>
+                        <Mermaid id="graph-hu3" chart={result.unoptimizedGraph} />
+                    </div>
+                    
+                    <div style={{ flex: 1, backgroundColor: 'white', padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }}>
+                        <h3 style={{color: 'black'}}>Grafo Otimizado (HU4)</h3>
+                        <Mermaid id="graph-hu4" chart={result.optimizedGraph} />
+                    </div>
                 </div>
                 
-                <div style={{ flex: 1, backgroundColor: 'white', padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }}>
-                    <h3 style={{color: 'black'}}>Grafo Otimizado (HU4)</h3>
-                    <Mermaid id="graph-hu4" chart={result.optimizedGraph} />
-                </div>
+                {result.executionPlan && (
+                    <div style={{ display: 'flex', flexDirection: 'row', gap: '20px' }}>
+                        <div style={{ flex: 1, backgroundColor: 'white', padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }}>
+                            <h3 style={{color: 'black'}}>Plano de Execução (HU5)</h3>
+                            <Mermaid id="graph-hu5" chart={result.executionPlan} />
+                        </div>
+                    </div>
+                )}
             </div>
           )}
         </div>

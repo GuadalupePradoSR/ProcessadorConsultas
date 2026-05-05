@@ -11,6 +11,7 @@ public class QueryResponse {
     private String algebra;
     private String unoptimizedGraph;
     private String optimizedGraph;
+    private String executionPlan;
 
     public QueryResponse(boolean valid, String message) {
         this.valid = valid;

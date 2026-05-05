@@ -22,6 +22,84 @@ public class GraphBuilderService {
         return buildGraph(sql, true);
     }
 
+    public String buildExecutionPlanGraph(String sql) {
+        try {
+            String cleanSql = sql.trim().replaceAll("\\s+", " ");
+            Statement statement = CCJSqlParserUtil.parse(cleanSql);
+
+            if (!(statement instanceof Select)) return "";
+            Select selectStatement = (Select) statement;
+            if (!(selectStatement.getSelectBody() instanceof PlainSelect)) return "";
+
+            PlainSelect plainSelect = (PlainSelect) selectStatement.getSelectBody();
+            
+            StringBuilder mermaid = new StringBuilder("graph TD;\n");
+            int nodeId = 0;
+            int executionStep = 1;
+
+            // Bases
+            String baseTable = plainSelect.getFromItem().toString();
+            String baseTableId = "N" + (nodeId++);
+            mermaid.append("    ").append(baseTableId).append("[\"").append(executionStep++).append(". Leitura de ").append(baseTable).append("\"];\n");
+
+            String targetForFirstJoinLeft = baseTableId;
+
+            if (plainSelect.getWhere() != null) {
+                String pushedSelectionId = "N" + (nodeId++);
+                String condicao = plainSelect.getWhere().toString();
+                mermaid.append("    ").append(pushedSelectionId).append("[\"").append(executionStep++).append(". &sigma; (").append(condicao).append(")\"];\n");
+                mermaid.append("    ").append(pushedSelectionId).append(" --> ").append(baseTableId).append(";\n");
+                targetForFirstJoinLeft = pushedSelectionId;
+            }
+
+            String currentJoinParent = null;
+
+            if (plainSelect.getJoins() != null && !plainSelect.getJoins().isEmpty()) {
+
+                for (Join join : plainSelect.getJoins()) {
+                    String tableName = join.getRightItem().toString();
+                    String tableId = "N" + (nodeId++);
+                    
+                    mermaid.append("    ").append(tableId).append("[\"").append(executionStep++).append(". Leitura de ").append(tableName).append("\"];\n");
+                    
+                    String condicaoJoin = "";
+                    if (join.getOnExpressions() != null && !join.getOnExpressions().isEmpty()) {
+                        condicaoJoin = join.getOnExpressions().stream()
+                                .map(Object::toString)
+                                .collect(Collectors.joining(" AND "));
+                    }
+
+                    String joinId = "N" + (nodeId++);
+                    mermaid.append("    ").append(joinId).append("[\"").append(executionStep++).append(". ⋈ (").append(condicaoJoin).append(")\"];\n");
+                    
+                    if (currentJoinParent == null) {
+                        mermaid.append("    ").append(joinId).append(" --> ").append(targetForFirstJoinLeft).append(";\n");
+                        mermaid.append("    ").append(joinId).append(" --> ").append(tableId).append(";\n");
+                    } else {
+                        mermaid.append("    ").append(joinId).append(" --> ").append(currentJoinParent).append(";\n");
+                        mermaid.append("    ").append(joinId).append(" --> ").append(tableId).append(";\n");
+                    }
+                    currentJoinParent = joinId;
+                }
+            }
+
+            // Projection (Root)
+            String projectionId = "N" + (nodeId++);
+            String cols = plainSelect.getSelectItems().stream().map(Object::toString).collect(Collectors.joining(", "));
+            mermaid.append("    ").append(projectionId).append("[\"").append(executionStep++).append(". &pi; (").append(cols).append(")\"];\n");
+
+            if (currentJoinParent != null) {
+                mermaid.append("    ").append(projectionId).append(" --> ").append(currentJoinParent).append(";\n");
+            } else {
+                mermaid.append("    ").append(projectionId).append(" --> ").append(targetForFirstJoinLeft).append(";\n");
+            }
+
+            return mermaid.toString();
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
     private String buildGraph(String sql, boolean optimized) {
         try {
             String cleanSql = sql.trim().replaceAll("\\s+", " ");
