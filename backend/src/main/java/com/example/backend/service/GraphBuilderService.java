@@ -46,7 +46,7 @@ public class GraphBuilderService {
 
             if (plainSelect.getWhere() != null) {
                 String pushedSelectionId = "N" + (nodeId++);
-                String condicao = plainSelect.getWhere().toString();
+                String condicao = plainSelect.getWhere().toString().replaceAll("(?i)\\bAND\\b", "^");
                 mermaid.append("    ").append(pushedSelectionId).append("[\"").append(executionStep++).append(". &sigma; (").append(condicao).append(")\"];\n");
                 mermaid.append("    ").append(pushedSelectionId).append(" --> ").append(baseTableId).append(";\n");
                 targetForFirstJoinLeft = pushedSelectionId;
@@ -124,7 +124,7 @@ public class GraphBuilderService {
             String selectionId = null;
             if (plainSelect.getWhere() != null && !optimized) {
                 selectionId = "N" + (nodeId++);
-                String condicao = plainSelect.getWhere().toString();
+                String condicao = plainSelect.getWhere().toString().replaceAll("(?i)\\bAND\\b", "^");
                 mermaid.append("    ").append(selectionId).append("[\"&sigma; (").append(condicao).append(")\"];\n");
                 mermaid.append("    ").append(parentId).append(" --> ").append(selectionId).append(";\n");
                 parentId = selectionId;
@@ -140,7 +140,7 @@ public class GraphBuilderService {
 
             if (optimized && plainSelect.getWhere() != null) {
                 String pushedSelectionId = "N" + (nodeId++);
-                String condicao = plainSelect.getWhere().toString();
+                String condicao = plainSelect.getWhere().toString().replaceAll("(?i)\\bAND\\b", "^");
                 mermaid.append("    ").append(pushedSelectionId).append("[\"&sigma; (").append(condicao).append(")\"];\n");
                 mermaid.append("    ").append(pushedSelectionId).append(" --> ").append(baseTableId).append(";\n");
                 targetForFirstJoinLeft = pushedSelectionId; // The first join will point to this selection instead of the base table
@@ -159,8 +159,8 @@ public class GraphBuilderService {
                     String condicaoJoin = "";
                     if (join.getOnExpressions() != null && !join.getOnExpressions().isEmpty()) {
                         condicaoJoin = join.getOnExpressions().stream()
-                                .map(Object::toString)
-                                .collect(Collectors.joining(" AND "));
+                                .map(e -> e.toString().replaceAll("(?i)\\bAND\\b", "^"))
+                                .collect(Collectors.joining(" ^ "));
                     }
 
                     mermaid.append("    ").append(joinId).append("[\"⋈ (").append(condicaoJoin).append(")\"];\n");
