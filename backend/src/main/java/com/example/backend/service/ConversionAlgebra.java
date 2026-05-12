@@ -14,13 +14,9 @@ public class ConversionAlgebra {
 
     public String convertToAlgebra(String sql) {
         try {
-            // Limpa a string da mesma forma que o validador
             String cleanSql = sql.trim().replaceAll("\\s+", " ");
-            
-            // Realiza o parse novamente
             Statement statement = CCJSqlParserUtil.parse(cleanSql);
 
-            // Validações básicas de segurança para a conversão
             if (!(statement instanceof Select)) {
                 return "Erro: Suporte apenas para comandos SELECT.";
             }
@@ -33,10 +29,9 @@ public class ConversionAlgebra {
             PlainSelect plainSelect = (PlainSelect) selectStatement.getSelectBody();
             
             // 1. FROM (Relação Base)
-            // Pega a tabela principal da consulta
             String expressaoAtual = plainSelect.getFromItem().toString();
 
-            // 2. JOINs (Junções - ⋈ ou Produto Cartesiano - ×)
+            // 2. JOINs
             if (plainSelect.getJoins() != null) {
                 for (Join join : plainSelect.getJoins()) {
                     String tabelaJoin = join.getRightItem().toString();
@@ -44,21 +39,23 @@ public class ConversionAlgebra {
                     if (join.getOnExpressions() != null && !join.getOnExpressions().isEmpty()) {
                         String condicaoJoin = join.getOnExpressions().stream()
                                 .map(Object::toString)
-                                .collect(Collectors.joining(" AND "));
-                        // Aplica o símbolo de Join com a condição
+                                .collect(Collectors.joining(" ^ "));
                         expressaoAtual = "(" + expressaoAtual + " ⋈_{" + condicaoJoin + "} " + tabelaJoin + ")";
                     } else {
-                        // Se não houver ON, é um produto cartesiano
                         expressaoAtual = "(" + expressaoAtual + " × " + tabelaJoin + ")"; 
                     }
                 }
             }
 
-            // 3. WHERE (Seleção - σ)
+            // 3. WHERE (Seleção - σ) - CORRIGIDO PARA CASCATA
             if (plainSelect.getWhere() != null) {
-                String condicaoWhere = plainSelect.getWhere().toString();
-                // Envolve a expressão atual com a operação de Seleção
-                expressaoAtual = "σ_(" + condicaoWhere + ")(" + expressaoAtual + ")";
+                // Divide as condições pelo AND (ignorando maiúsculas/minúsculas)
+                String[] condicoes = plainSelect.getWhere().toString().split("(?i) AND ");
+                
+                // Aplica uma operação σ para cada condição isolada
+                for (String condicao : condicoes) {
+                    expressaoAtual = "σ_(" + condicao.trim() + ")(" + expressaoAtual + ")";
+                }
             }
 
             // 4. SELECT (Projeção - π)
@@ -66,7 +63,6 @@ public class ConversionAlgebra {
                     .map(Object::toString)
                     .collect(Collectors.joining(", "));
             
-            // Sempre aplicamos a Projeção (π) para efeito visual no frontend
             expressaoAtual = "π_(" + colunas + ")(" + expressaoAtual + ")";
 
             return expressaoAtual;
